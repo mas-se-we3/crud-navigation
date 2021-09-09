@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { createNewUser } from '../../models/User'
+import { createNewUser, UsersUrl } from '../../models/User'
 import { Button } from '../controls/Button'
 import { TextInput } from '../controls/TextInput'
 
@@ -10,23 +10,47 @@ export class UserDetails extends Component {
 	}
 
 	async componentDidMount() {
-		// TODO: UserId abfragen und fetchUser() aufrufen
+		const id = this.props.match.params.id
+		if (id) {
+			await this.fetchUser(id)
+		}
 	}
 
 	async componentDidUpdate(prevProps) {
-		// TODO: Advanced -> Fixe "User erstellen"-Link, wenn bereits ein User geladen ist
+		const prevId = prevProps.match.params.id
+		const id = this.props.match.params.id
+		if (prevId && !id) {
+			this.setState({ user: createNewUser() })
+		}
 	}
 
 	fetchUser = async id => {
-		// TODO: User von API mit fetch() holen
+		this.setState({ loading: true })
+		const response = await fetch(`${UsersUrl}/${id}`)
+		const user = await response.json()
+		this.setState({ loading: false, user })
 	}
 
 	update = property => value => {
-		// TODO: Property des Users im State updaten
+		const updatedUser = { ...this.state.user, [property]: value }
+		this.setState({ user: updatedUser })
 	}
 
 	save = async user => {
-		// TODO: User nach API schicken -> Erstellen und Update unterscheiden
+		this.setState({ loading: true })
+		const response = await fetch(`${UsersUrl}/${user.id ?? ''}`, {
+			method: user.id ? 'put' : 'post',
+			body: JSON.stringify(user)
+		})
+
+		if (response.status >= 300) {
+			this.setState({ error: 'Fehler aufgetreten!', loading: false })
+		} else {
+			const update = await response.json()
+			let user = { ...this.state.user, ...update }
+
+			this.setState({ loading: false, user })
+		}
 	}
 
 	render() {
