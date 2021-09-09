@@ -1,11 +1,15 @@
-import React, { Component } from 'react'
+import React, { Component, Fragment } from 'react'
+import { Link } from 'react-router-dom'
+import { UsersUrl } from '../../models/User'
 import './Overview.css'
 
 export class Overview extends Component {
 	state = { users: [] }
 
 	async componentDidMount() {
-		// TODO: Alle Users von API abfragen und in State speichern
+		const response = await fetch(UsersUrl)
+		const users = await response.json()
+		this.setState({ users })
 	}
 
 	render() {
@@ -13,7 +17,13 @@ export class Overview extends Component {
 
 		return (
 			<div className="overview__container">
-				{/* TODO: Users mit folgenden Spalten (div) auflisten: name, email, Bearbeiten-Link */}
+				{users.map(u => (
+					<Fragment key={u.id}>
+						<div>{u.name}</div>
+						<div>{u.email}</div>
+						<Link to={`/users/${u.id}`}>Bearbeiten</Link>
+					</Fragment>
+				))}
 			</div>
 		)
 	}
